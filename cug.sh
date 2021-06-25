@@ -188,7 +188,7 @@ then
 	chown beta_portal_user:nginx * -R
 
 	# Restart the service.
-	systemctl restart portal_users	
+	systemctl restart userdb	
 
 else
 
