@@ -52,7 +52,7 @@ then
 				git clone http://github.com/biocompute-objects/userdb
 				
 				# Replace the settings file.			
-				cp ~/temp/settings.py ~/bco_api/bco_api/bco_api/settings.py
+				cp ~/temp/settings.py ~/userdb/portalusers/settings.py
 
 				# Get in the repository.
 				cd userdb
@@ -137,7 +137,7 @@ then
 			git clone http://github.com/biocompute-objects/userdb
 			
 			# Replace the settings file.			
-			cp ~/temp/settings.py ~/bco_api/bco_api/bco_api/settings.py
+			cp ~/temp/settings.py ~/userdb/portalusers/settings.py
 
 			# Get in the repository.
 			cd userdb
