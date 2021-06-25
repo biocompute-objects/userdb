@@ -42,22 +42,20 @@ then
 				# Make the temporary directory.
 				mkdir temp
 				
-				# Copy the settings and server configuration files.
-				cp ~/bco_api/bco_api/bco_api/settings.py ~/temp/settings.py
-				cp ~/bco_api/bco_api/server.conf ~/temp/server.conf
+				# Copy the settings file.
+				cp ~/userdb/portalusers/settings.py ~/temp/settings.py
 
-				# Remove the API folder.
-				rm bco_api -rf
+				# Remove the UserDB folder.
+				rm userdb -rf
 
 				# Clone the repository.
 				git clone http://github.com/biocompute-objects/userdb
 				
-				# Replace the settings and server configuration files.			
+				# Replace the settings file.			
 				cp ~/temp/settings.py ~/bco_api/bco_api/bco_api/settings.py
-				cp ~/temp/server.conf ~/bco_api/bco_api/server.conf
 
 				# Get in the repository.
-				cd bco_api
+				cd userdb
 
 				# Create the virtual environment and activate it.
 				# ~/opt/bin/virtualenv env
@@ -67,11 +65,9 @@ then
 				# Install requirements.
 				pip3.9 install -r requirements.txt
 
-				# Enter the project directory and migrate.
-				cd bco_api
+				# Migrate.
 				python3.9 manage.py makemigrations
 				python3.9 manage.py migrate
-				python3.9 manage.py loaddata ~/bco_api/bco_api/api/fixtures/metafixtures.json
 				
 				# Remove the temp folder.
 				rm ~/temp -rf
@@ -122,7 +118,7 @@ then
 		mkdir temp
 		
 		# *Dump* the existing database.
-		sqlite3 ~/bco_api/bco_api/db.sqlite3 .dump | gzip -c > ~/temp/db.sqlite3.bak.gz
+		sqlite3 ~/userdb/db.sqlite3 .dump | gzip -c > ~/temp/db.sqlite3.bak.gz
 		
 		# Only proceed if the backup was successful (i.e. the backup db exists).
 		# Source: https://linuxize.com/post/bash-check-if-file-exists/
@@ -130,40 +126,32 @@ then
 		then
 		
 			# The backup db exists, so proceed.
-				
-			# Copy the settings and server configuration files.
-			cp ~/bco_api/bco_api/bco_api/settings.py ~/temp/settings.py
-			cp ~/bco_api/bco_api/server.conf ~/temp/server.conf
+			
+			# Copy the settings file.
+			cp ~/userdb/portalusers/settings.py ~/temp/settings.py
 
-			# Remove the API folder.
-			rm bco_api -rf
+			# Remove the UserDB folder.
+			rm userdb -rf
 
 			# Clone the repository.
-			git clone http://github.com/biocompute-objects/bco_api
+			git clone http://github.com/biocompute-objects/userdb
 			
-			# Replace the settings and server configuration files.			
+			# Replace the settings file.			
 			cp ~/temp/settings.py ~/bco_api/bco_api/bco_api/settings.py
-			cp ~/temp/server.conf ~/bco_api/bco_api/server.conf
 
 			# Get in the repository.
-			cd bco_api
+			cd userdb
 
 			# Create the virtual environment and activate it.
+			# ~/opt/bin/virtualenv env
 			/home/beta_portal_user/.local/bin/virtualenv env
 			source env/bin/activate
 
 			# Install requirements.
 			pip3.9 install -r requirements.txt
-			
-			# Update the database based on the backup.
-			
-			# Restore the backup.
-			zcat ~/temp/db.sqlite3.bak.gz | sqlite3 ~/bco_api/bco_api/db.sqlite3
 
-			# Enter the project directory and migrate.
-			# cd bco_api
-			# python3.9 manage.py makemigrations
-			# python3.9 manage.py migrate
+			# Restore the backup.
+			zcat ~/temp/db.sqlite3.bak.gz | sqlite3 ~/userdb/db.sqlite3
 			
 			# Remove the temp folder.
 			rm ~/temp -rf
@@ -200,7 +188,7 @@ then
 	chown beta_portal_user:nginx * -R
 
 	# Restart the service.
-	systemctl restart bco_api	
+	systemctl restart portal_users	
 
 else
 
