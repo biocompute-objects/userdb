@@ -1,6 +1,5 @@
 [Unit]
 Description=UserDB gunicorn daemon
-Requires=userdb.socket
 After=network.target
 
 [Service]
