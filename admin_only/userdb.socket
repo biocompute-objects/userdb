@@ -2,7 +2,7 @@
 Description=gunicorn socket
 
 [Socket]
-ListenStream=/var/run/portal_users.sock
+ListenStream=/var/run/userdb.sock
 
 [Install]
 WantedBy=sockets.target
