@@ -7,7 +7,7 @@ After=network.target
 User=beta_portal_user
 Group=nginx
 WorkingDirectory=/home/beta_portal_user/userdb/
-ExecStart=/home/beta_portal_user/userdb/env/bin/gunicorn --workers 3 --bind 127.0.0.1:8080 portalusers.wsgi:application --access-logfile -
+ExecStart=/home/beta_portal_user/userdb/env/bin/gunicorn --workers 3 --bind unix:/var/run/userdb.sock portalusers.wsgi:application --access-logfile -
 
 [Install]
 WantedBy=multi-user.target
