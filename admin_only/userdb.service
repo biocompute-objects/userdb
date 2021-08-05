@@ -5,8 +5,8 @@ After=network.target
 [Service]
 User=bco_api_user
 Group=nginx
-WorkingDirectory=/home/bco_api_user/userdb/
-ExecStart=/home/bco_api_user/userdb/env/bin/gunicorn --workers 3 --bind 127.0.0.1:8080 portalusers.wsgi:application --access-logfile -
+WorkingDirectory=/var/www/bcoeditor/userdb/userdb/
+ExecStart=/var/www/bcoeditor/userdb/env/bin/gunicorn --workers 3 --bind 127.0.0.1:8080 portalusers.wsgi:application --access-logfile -
 
 [Install]
 WantedBy=multi-user.target
