@@ -26,7 +26,7 @@ SECRET_KEY = 'g6$hm-04*#=aedyrt@1nvig1a0bdzm_gmxfnl0k*+0q0ostl2c'
 DEBUG = True
 
 # TODO: Is this necessary?
-ALLOWED_HOSTS = ['beta.portal.aws.biochemistry.gwu.edu', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles', # required for serving swagger ui's css/js files
     'rest_framework',
+    'rest_framework_swagger', # required for serving swagger ui
     'corsheaders',
-    'core.apps.CoreConfig'
+    'core.apps.CoreConfig',
+    'drf_yasg',
 ]
 
 # Allow requests from the portal.
@@ -140,7 +142,7 @@ REST_FRAMEWORK = {
 
 # Allow requests from the portal and the API ONLY.
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error
-CORS_ORIGIN_ALL_ALL = False
+CORS_ORIGIN_ALL_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000',
     'http://127.0.0.1:3000',
