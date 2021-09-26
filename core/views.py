@@ -1,26 +1,32 @@
 from django.http import HttpResponseRedirect
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import ApiInfo
+from .models import ApiInfo, Profile
 from rest_framework import permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import ApiSerializer, UserSerializer, UserSerializerWithToken
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # POST body parsing.
-import json
-
+import json, pprint
+pp = pprint.PrettyPrinter(indent=2)
 
 @api_view(['GET'])
 def current_user(request):
     """
     Determine the current user by their token, and return their data
     """
-    print('HERE')
+    # Get the username 
+    user = UserSerializer(request.user).data['username']
+    
+    print('user', user)
     serializer = UserSerializer(request.user)
 
     print('+++++++++++++++')
-    print(serializer.data)
+    pp.pprint(serializer.data)
     print('+++++++++++++++')
 
     return Response(serializer.data)
@@ -28,7 +34,10 @@ def current_user(request):
 @api_view(['POST'])
 def add_api(request):
     """
+    Add API information 
+
     Update a user's information based on their token.
+    
     """
     
     # Get the user.
@@ -45,12 +54,12 @@ def add_api(request):
 
     # Add the key for the user.
     updated = ApiInfo(
-    	local_username = user_object,
+        local_username = user_object,
         username = bulk['username'], 
-    	hostname = bulk['hostname'], 
-    	human_readable_hostname = bulk['human_readable_hostname'], 
+        hostname = bulk['hostname'], 
+        human_readable_hostname = bulk['human_readable_hostname'], 
         public_hostname = bulk['public_hostname'],
-    	token = bulk['token'],
+        token = bulk['token'],
         other_info = bulk['other_info']
     )
     updated.save()
@@ -105,3 +114,59 @@ class UserList(APIView):
 # So, write to the table, then change the token.
 # We could have gone with a temporary token here, but
 # that may be too much too worry about.
+
+@api_view(['POST'])
+def update_user(request):
+    """
+    Update a user's information. Could probably be merged with add_api, or take over add_api
+    """
+
+    # Get the username 
+    user = UserSerializer(request.user).data['username']
+
+   # Get the user with associated username
+    user_object = User.objects.get(username = user)
+
+    # Get ApiInfo associated with user
+    api_object = ApiInfo.objects.get(local_username = user_object)
+    
+    try:
+        profile_object = Profile.objects.get(username = user_object)
+    except:
+        profile_object = Profile.objects.create(
+        username = username, 
+        public = False, 
+        affiliation = '',
+        orcid = '')
+
+    bulk = json.loads(request.body)
+
+    bulk.pop('username')
+    if 'token' in bulk.keys():
+        token = bulk.pop('token')
+    else: 
+        token = ""
+
+    for key, value in bulk.items():
+        print(key, ':', value)
+        if (key == 'first_name') or (key == 'last_name') or (key == 'email'):
+            setattr(user_object, key,value)
+        elif (key == 'orcid') or (key == 'affiliation') or (key == 'public'):
+            setattr(profile_object, key, value)
+        else:
+            old_info = api_object.other_info
+            old_info[key] = value
+
+            setattr(api_object, 'other_info', old_info)
+
+    user_object.save()
+
+    api_object.save()
+    
+    profile_object.save()
+
+    # properly formatted response
+    return Response({
+          'token': token,
+          'user': UserSerializer(request.user).data
+          })

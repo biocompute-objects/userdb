@@ -5,10 +5,18 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class Profile(models.Model):
+    username = models.OneToOneField(User, on_delete=models.CASCADE)
+    # Public Profile
+    public = models.BooleanField(default=False)
+    # User Affiliation
+    affiliation = models.CharField(blank = True, max_length = 1000)
+    # User ORCID    
+    orcid = models.CharField(blank = True, max_length = 1000)
+
 
 # API Information is kept separate so that we can use it
 # elsewhere easily.
-
 
 # API Information
 class ApiInfo(models.Model):
