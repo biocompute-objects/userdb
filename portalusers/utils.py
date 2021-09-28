@@ -15,7 +15,6 @@ def my_jwt_response_handler(token, user=None, request=None):
 
     # TODO: refer to API code for a cleaner way to do this.
     user_info['groups'] = [list(i.items())[0][1] for i in user_info['groups']]
-    
 
     return {
         'token': token,

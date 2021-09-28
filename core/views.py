@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import ApiInfo, Profile
@@ -13,6 +13,9 @@ from django.dispatch import receiver
 # POST body parsing.
 import json, pprint
 pp = pprint.PrettyPrinter(indent=2)
+
+def index(request):
+    return HttpResponse("Hello, world. You're at the polls index.")
 
 @api_view(['GET'])
 def current_user(request):
@@ -92,16 +95,21 @@ class UserList(APIView):
             return Response(status=status.HTTP_409_CONFLICT)
         
         else:
-            
+            profile_object = request.data['profile']
+            del request.data['profile']
             serializer = UserSerializerWithToken(data=request.data)
-            
             if serializer.is_valid():
                 serializer.save()
-                
+                user_object = User.objects.get(username = request.data['username'])
+                Profile.objects.create(
+                        username = user_object, 
+                        public = profile_object['public'], 
+                        affiliation = profile_object['affiliation'],
+                        orcid = profile_object['orcid'])
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             
             else:
-
+                print('serializer fail', serializer)
                 # The request didn't provide what we needed.
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -130,14 +138,7 @@ def update_user(request):
     # Get ApiInfo associated with user
     api_object = ApiInfo.objects.get(local_username = user_object)
     
-    try:
-        profile_object = Profile.objects.get(username = user_object)
-    except:
-        profile_object = Profile.objects.create(
-        username = username, 
-        public = False, 
-        affiliation = '',
-        orcid = '')
+    profile_object = Profile.objects.get(username = user_object)
 
     bulk = json.loads(request.body)
 

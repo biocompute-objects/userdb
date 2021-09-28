@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 class Profile(models.Model):
     username = models.OneToOneField(User, on_delete=models.CASCADE)
     # Public Profile
-    public = models.BooleanField(default=False)
+    public = models.BooleanField(blank = True, default=False)
     # User Affiliation
     affiliation = models.CharField(blank = True, max_length = 1000)
     # User ORCID    
