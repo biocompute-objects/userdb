@@ -138,7 +138,10 @@ def update_user(request):
     # Get ApiInfo associated with user
     api_object = ApiInfo.objects.get(local_username = user_object)
     
-    profile_object = Profile.objects.get(username = user_object)
+    try:
+        profile_object = Profile.objects.get(username = user_object)
+    except:
+        profile_object = Profile.objects.create(username = user_object)
 
     bulk = json.loads(request.body)
 
