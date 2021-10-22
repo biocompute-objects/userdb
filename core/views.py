@@ -152,7 +152,6 @@ def update_user(request):
         token = ""
 
     for key, value in bulk.items():
-        print(key, ':', value)
         if (key == 'first_name') or (key == 'last_name') or (key == 'email'):
             setattr(user_object, key,value)
         elif (key == 'orcid') or (key == 'affiliation') or (key == 'public'):
