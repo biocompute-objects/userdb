@@ -78,6 +78,45 @@ def add_api(request):
     return (Response(UserSerializer(request.user).data, status=status.HTTP_201_CREATED))
 
 
+@api_view(['POST', 'DELETE'])
+def remove_api(request):
+    """
+    Remove API information
+
+    Remove an API interface for a user based on their token.
+
+    """
+
+    # Get the user.
+    print('U check')
+    print(UserSerializer(request.user).data)
+    user = UserSerializer(request.user).data['username']
+
+    # TODO: right way to do this?
+    # Get the user ID so that we can link across tables.
+    user_object = User.objects.get(username=user)
+
+    # Get the bulk information.
+    bulk = json.loads(request.body)
+
+    for api in bulk['selected_rows']:
+        '''
+        {'_state': <django.db.models.base.ModelState object at 0x1028e1340>, 'id': 2, 
+        'local_username_id': 4, 'username': 'Test53', 'hostname': 'beta.portal.aws.biochemistry.gwu.edu', 
+        'human_readable_hostname': 'BCO Server (Default)', 'public_hostname': 'http://127.0.0.1:8000', 
+        'token': '27ab0a38ff99decb885e7e1b525abdbfd641da18', 
+        'other_info': {'permissions': {'user': {}, 'groups': {'bco_drafter': {}, 'bco_publisher': {'bco': ['add_BCO', 'change_BCO', 'delete_BCO', 'draft_BCO', 'publish_BCO', 'view_BCO']}, 'Test53': {}}}, 'account_creation': '2021-10-28 02:09:13.061908+00:00', 'account_expiration': ''}}
+        '''
+        # TODO: Should also check against the specific server token; needs to be sent from front end
+        result = ApiInfo.objects.filter(local_username=user_object, human_readable_hostname=api).delete()
+        print(result)
+
+    print('========')
+    print(user)
+    print('=========')
+    return (Response(UserSerializer(request.user).data, status=status.HTTP_200_OK))
+
+
 class UserList(APIView):
     """
     Create a new user. It's called 'UserList' because normally we'd have a get
