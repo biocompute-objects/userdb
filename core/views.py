@@ -12,10 +12,13 @@ from django.dispatch import receiver
 
 # POST body parsing.
 import json, pprint
+
 pp = pprint.PrettyPrinter(indent=2)
+
 
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
+
 
 @api_view(['GET'])
 def current_user(request):
@@ -24,7 +27,7 @@ def current_user(request):
     """
     # Get the username 
     user = UserSerializer(request.user).data['username']
-    
+
     print('user', user)
     serializer = UserSerializer(request.user)
 
@@ -34,6 +37,7 @@ def current_user(request):
 
     return Response(serializer.data)
 
+
 @api_view(['POST'])
 def add_api(request):
     """
@@ -42,7 +46,7 @@ def add_api(request):
     Update a user's information based on their token.
     
     """
-    
+
     # Get the user.
     print('U check')
     print(UserSerializer(request.user).data)
@@ -50,28 +54,67 @@ def add_api(request):
 
     # TODO: right way to do this?
     # Get the user ID so that we can link across tables.
-    user_object = User.objects.get(username = user)
+    user_object = User.objects.get(username=user)
 
     # Get the bulk information.
     bulk = json.loads(request.body)
 
     # Add the key for the user.
     updated = ApiInfo(
-        local_username = user_object,
-        username = bulk['username'], 
-        hostname = bulk['hostname'], 
-        human_readable_hostname = bulk['human_readable_hostname'], 
-        public_hostname = bulk['public_hostname'],
-        token = bulk['token'],
-        other_info = bulk['other_info']
-    )
+            local_username=user_object,
+            username=bulk['username'],
+            hostname=bulk['hostname'],
+            human_readable_hostname=bulk['human_readable_hostname'],
+            public_hostname=bulk['public_hostname'],
+            token=bulk['token'],
+            other_info=bulk['other_info']
+            )
     updated.save()
 
     print('========')
     print(user)
     print(updated)
     print('=========')
-    return(Response(UserSerializer(request.user).data, status=status.HTTP_201_CREATED))
+    return (Response(UserSerializer(request.user).data, status=status.HTTP_201_CREATED))
+
+
+@api_view(['POST', 'DELETE'])
+def remove_api(request):
+    """
+    Remove API information
+
+    Remove an API interface for a user based on their token.
+
+    """
+
+    # Get the user.
+    print('U check')
+    print(UserSerializer(request.user).data)
+    user = UserSerializer(request.user).data['username']
+
+    # TODO: right way to do this?
+    # Get the user ID so that we can link across tables.
+    user_object = User.objects.get(username=user)
+
+    # Get the bulk information.
+    bulk = json.loads(request.body)
+
+    for api in bulk['selected_rows']:
+        '''
+        {'_state': <django.db.models.base.ModelState object at 0x1028e1340>, 'id': 2, 
+        'local_username_id': 4, 'username': 'Test53', 'hostname': 'beta.portal.aws.biochemistry.gwu.edu', 
+        'human_readable_hostname': 'BCO Server (Default)', 'public_hostname': 'http://127.0.0.1:8000', 
+        'token': '27ab0a38ff99decb885e7e1b525abdbfd641da18', 
+        'other_info': {'permissions': {'user': {}, 'groups': {'bco_drafter': {}, 'bco_publisher': {'bco': ['add_BCO', 'change_BCO', 'delete_BCO', 'draft_BCO', 'publish_BCO', 'view_BCO']}, 'Test53': {}}}, 'account_creation': '2021-10-28 02:09:13.061908+00:00', 'account_expiration': ''}}
+        '''
+        # TODO: Should also check against the specific server token; needs to be sent from front end
+        result = ApiInfo.objects.filter(local_username=user_object, human_readable_hostname=api).delete()
+        print(result)
+
+    print('========')
+    print(user)
+    print('=========')
+    return (Response(UserSerializer(request.user).data, status=status.HTTP_200_OK))
 
 
 class UserList(APIView):
@@ -83,31 +126,31 @@ class UserList(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, format=None):
-        
+
         print('request.data: ')
         print(request.data)
         print('===============')
 
         # Does this user already exist?
-        if User.objects.filter(username = request.data['username']).exists():
+        if User.objects.filter(username=request.data['username']).exists():
 
             # Bad request because the user already exists.
             return Response(status=status.HTTP_409_CONFLICT)
-        
+
         else:
             profile_object = request.data['profile']
             del request.data['profile']
             serializer = UserSerializerWithToken(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                user_object = User.objects.get(username = request.data['username'])
+                user_object = User.objects.get(username=request.data['username'])
                 Profile.objects.create(
-                        username = user_object, 
-                        public = profile_object['public'], 
-                        affiliation = profile_object['affiliation'],
-                        orcid = profile_object['orcid'])
+                        username=user_object,
+                        public=profile_object['public'],
+                        affiliation=profile_object['affiliation'],
+                        orcid=profile_object['orcid'])
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-            
+
             else:
                 print('serializer fail', serializer)
                 # The request didn't provide what we needed.
@@ -132,28 +175,28 @@ def update_user(request):
     # Get the username 
     user = UserSerializer(request.user).data['username']
 
-   # Get the user with associated username
-    user_object = User.objects.get(username = user)
+    # Get the user with associated username
+    user_object = User.objects.get(username=user)
 
     # Get ApiInfo associated with user
-    api_object = ApiInfo.objects.get(local_username = user_object)
-    
+    api_object = ApiInfo.objects.get(local_username=user_object)
+
     try:
-        profile_object = Profile.objects.get(username = user_object)
+        profile_object = Profile.objects.get(username=user_object)
     except:
-        profile_object = Profile.objects.create(username = user_object)
+        profile_object = Profile.objects.create(username=user_object)
 
     bulk = json.loads(request.body)
 
     bulk.pop('username')
     if 'token' in bulk.keys():
         token = bulk.pop('token')
-    else: 
+    else:
         token = ""
 
     for key, value in bulk.items():
         if (key == 'first_name') or (key == 'last_name') or (key == 'email'):
-            setattr(user_object, key,value)
+            setattr(user_object, key, value)
         elif (key == 'orcid') or (key == 'affiliation') or (key == 'public'):
             setattr(profile_object, key, value)
         else:
@@ -165,11 +208,11 @@ def update_user(request):
     user_object.save()
 
     api_object.save()
-    
+
     profile_object.save()
 
     # properly formatted response
     return Response({
-          'token': token,
-          'user': UserSerializer(request.user).data
-          })
+            'token': token,
+            'user' : UserSerializer(request.user).data
+            })
