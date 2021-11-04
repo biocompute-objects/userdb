@@ -1,6 +1,5 @@
 from core.serializers import UserSerializer, ApiSerializer
-import json, pprint
-pp = pprint.PrettyPrinter(indent=2)
+
 
 def my_jwt_response_handler(token, user=None, request=None):
 
@@ -11,7 +10,7 @@ def my_jwt_response_handler(token, user=None, request=None):
     print(user)
     print('------')
     print('user_info')
-    pp.pprint(user_info)
+    print(user_info)
 
     # TODO: refer to API code for a cleaner way to do this.
     user_info['groups'] = [list(i.items())[0][1] for i in user_info['groups']]

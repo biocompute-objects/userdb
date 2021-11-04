@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
-from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -141,15 +140,6 @@ REST_FRAMEWORK = {
     ),
 }
 
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'basic': {
-            'type': 'basic'
-        }
-    },
- 
-}
-
 # Allow requests from the portal and the API ONLY.
 # Source: https://dzone.com/articles/how-to-fix-django-cors-error
 CORS_ORIGIN_ALL_ALL = True
@@ -165,3 +155,24 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': timedelta(seconds=604800),
     'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
 }
+
+# LOGGING
+# Source: https://stackoverflow.com/a/42755885/5029459
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': 'debug.log',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
