@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import current_user, add_api, remove_api, UserList, update_user, ind
+from .views import current_user, add_api, remove_api, UserList, update_user, index
 # For favicon and any other static files
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
