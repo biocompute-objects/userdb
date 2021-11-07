@@ -1,14 +1,22 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import ApiInfo
+from .models import ApiInfo, Profile
 from rest_framework import permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import ApiSerializer, UserSerializer, UserSerializerWithToken
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 # POST body parsing.
 import json
+
+
+def index(request):
+    return HttpResponse("Hello, world. You're at the polls index.")
 
 
 @api_view(['GET'])
@@ -24,6 +32,7 @@ def current_user(request):
     print('+++++++++++++++')
 
     return Response(serializer.data)
+
 
 @api_view(['POST'])
 def add_api(request):
@@ -120,11 +129,19 @@ class UserList(APIView):
             return Response(status=status.HTTP_409_CONFLICT)
         
         else:
-            
+            profile_object = request.data['profile']
+            del request.data['profile'] 
             serializer = UserSerializerWithToken(data=request.data)
             
             if serializer.is_valid():
                 serializer.save()
+
+                user_object = User.objects.get(username=request.data['username'])
+                Profile.objects.create(
+                        username=user_object,
+                        public=profile_object['public'],
+                        affiliation=profile_object['affiliation'],
+                        orcid=profile_object['orcid'])
                 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             
@@ -132,6 +149,58 @@ class UserList(APIView):
 
                 # The request didn't provide what we needed.
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def update_user(request):
+    """
+    Update a user's information. Could probably be merged with add_api, or take over add_api
+    """
+
+    # Get the username
+    user = UserSerializer(request.user).data['username']
+
+    # Get the user with associated username
+    user_object = User.objects.get(username=user)
+
+    # Get ApiInfo associated with user
+    api_object = ApiInfo.objects.get(local_username=user_object)
+
+    try:
+        profile_object = Profile.objects.get(username=user_object)
+    except:
+        profile_object = Profile.objects.create(username=user_object)
+
+    bulk = json.loads(request.body)
+
+    bulk.pop('username')
+    if 'token' in bulk.keys():
+        token = bulk.pop('token')
+    else:
+        token = ""
+
+    for key, value in bulk.items():
+        if (key == 'first_name') or (key == 'last_name') or (key == 'email'):
+            setattr(user_object, key, value)
+        elif (key == 'orcid') or (key == 'affiliation') or (key == 'public'):
+            setattr(profile_object, key, value)
+        else:
+            old_info = api_object.other_info
+            old_info[key] = value
+
+            setattr(api_object, 'other_info', old_info)
+
+    user_object.save()
+
+    api_object.save()
+
+    profile_object.save()
+
+    # properly formatted response
+    return Response({
+            'token': token,
+            'user' : UserSerializer(request.user).data
+            })
 
 
 # (OPTIONAL) Special "one-off" view for an API writing to user

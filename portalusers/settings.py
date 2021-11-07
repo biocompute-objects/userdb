@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+from os.path import join
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -128,6 +130,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATICFILES_DIRS = [
+   join(BASE_DIR, "static"),
+   ]
+
+
 # Authentication
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -149,6 +156,15 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:8000',
     'http://127.0.0.1:8000'
 )
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        }
+    },
+
+}
 
 JWT_AUTH = {
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'portalusers.utils.my_jwt_response_handler',
