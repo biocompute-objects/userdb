@@ -21,7 +21,7 @@ This will expose the server at `http://127.0.0.1:8080`.
 
 #### Overriding the port
 
-It is possible to override the port `8000` to whatever port is desired, for example port `8008`.  This is done by running the container:
+It is possible to override the port `8080` to whatever port is desired, for example port `8008`.  This is done by running the container:
 
 `docker run --rm --network host -it userdb:latest 0.0.0.0:8008`
 
