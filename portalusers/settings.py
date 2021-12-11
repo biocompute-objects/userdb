@@ -172,7 +172,8 @@ SWAGGER_SETTINGS = {
 JWT_AUTH = {
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'portalusers.utils.my_jwt_response_handler',
     'JWT_EXPIRATION_DELTA': timedelta(seconds=604800),
-    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
+    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=14),
+    'JWT_ALLOW_REFRESH': True,
 }
 
 # LOGGING
