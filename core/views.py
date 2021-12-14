@@ -1,7 +1,7 @@
 import json
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
+from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,7 +9,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import ApiInfo, Profile
-from .serializers import ApiSerializer, UserSerializer, UserSerializerWithToken
+from .serializers import ApiSerializer, UserSerializer, UserSerializerWithToken, ChangePasswordSerializer
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -23,31 +23,31 @@ class CreateUser(APIView):
 
     permission_classes = (permissions.AllowAny,)
     request_body = openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            title="Account Creation Schema",
-            description="Account creation schema description.",
-            required=['username', 'email', 'password'],
-            properties={
+        type=openapi.TYPE_OBJECT,
+        title="Account Creation Schema",
+        description="Account creation schema description.",
+        required=['username', 'email', 'password'],
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING,
+                description='Hostname of the User Database.'),
+            'email'   : openapi.Schema(type=openapi.TYPE_STRING,
+                description='Email address of user.'),
+            'password': openapi.Schema(type=openapi.TYPE_STRING,
+                description='Token returned with new user being '),
+            'profile' : openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                description='Token returned with new user being ', 
+                required=['username'],
+                properties={
                     'username': openapi.Schema(type=openapi.TYPE_STRING,
-                        description='Hostname of the User Database.'),
-                    'email'   : openapi.Schema(type=openapi.TYPE_STRING,
-                        description='Email address of user.'),
-                    'password': openapi.Schema(type=openapi.TYPE_STRING,
-                        description='Token returned with new user being '),
-                    'profile' : openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        description='Token returned with new user being ', 
-                        required=['username'],
-                        properties={
-                            'username': openapi.Schema(type=openapi.TYPE_STRING,
-                                description='Username for the profile user object. Should be the same as above.'),
-                            'public' : openapi.Schema(type=openapi.TYPE_BOOLEAN,
-                                description='Boolean to indicate if this users profile is publicly viewable.'),
-                            'affiliation': openapi.Schema(type=openapi.TYPE_STRING,
-                                description='Affiliation of the User.'),
-                            'orcid': openapi.Schema(type=openapi.TYPE_STRING,
-                                description='ORCID for the User.')
-                        } ),
+                        description='Username for the profile user object. Should be the same as above.'),
+                    'public' : openapi.Schema(type=openapi.TYPE_BOOLEAN,
+                        description='Boolean to indicate if this users profile is publicly viewable.'),
+                    'affiliation': openapi.Schema(type=openapi.TYPE_STRING,
+                        description='Affiliation of the User.'),
+                    'orcid': openapi.Schema(type=openapi.TYPE_STRING,
+                        description='ORCID for the User.')
+                } ),
             })
 
     @swagger_auto_schema(request_body=request_body, responses={
@@ -91,6 +91,60 @@ class CreateUser(APIView):
 
                 # The request didn't provide what we needed.
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ChangePasswordView(generics.UpdateAPIView):
+    """
+    An endpoint for changing password.
+    """
+    serializer_class = ChangePasswordSerializer
+    model = User
+    
+    permission_classes = (permissions.IsAuthenticated,)
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Password Change Schema",
+        description="Endpoint for changing password.",
+        required=['old_password', 'new_password'],
+        properties={
+            'old_password': openapi.Schema(type=openapi.TYPE_STRING,
+                    description='Token returned with new user being '),
+            'new_password': openapi.Schema(type=openapi.TYPE_STRING,
+                    description='Token returned with new user being ')
+        }
+    )
+    
+    @swagger_auto_schema(request_body=request_body, responses={
+            200: "Password updated successfully.",
+            400: "Bad request.",
+            401: "Invalid username/password.",
+            500: "Server Error"
+            }, tags=["Account Management"])
+
+    def get_object(self, queryset=None):
+        obj = self.request.user
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+            # set_password also hashes the password that the user will get
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            response = {
+                'status': 'success',
+                'code': status.HTTP_200_OK,
+                'message': 'Password updated successfully',
+                'data': []
+            }
+
+            return Response(response)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @swagger_auto_schema(method="get", tags=["Account Management"])
 @api_view(['GET'])

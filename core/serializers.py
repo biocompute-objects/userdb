@@ -10,6 +10,20 @@ from .models import ApiInfo, Profile
 # Source: https://stackoverflow.com/questions/33844003/how-to-serialize-groups-of-a-user-with-django-rest-framework/33844179
 from django.contrib.auth.models import Group
 
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for password change endpoint.
+
+    * Provideds serializer for an old password and a new password
+
+    :param str old_password: the old password
+    :param str new_password: the new password
+    """
+
+    model = User
+
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
 
 # Profile serializer
 class ProfileSerializer(serializers.ModelSerializer):
