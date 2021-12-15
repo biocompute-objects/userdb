@@ -31,6 +31,7 @@ DEBUG = True
 # TODO: Is this necessary?
 ALLOWED_HOSTS = ['*']
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Application definition
 
