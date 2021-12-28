@@ -6,7 +6,7 @@ After=network.target
 User=bco_api_user
 Group=nginx
 WorkingDirectory=/var/www/bcoeditor/userdb/
-ExecStart=/var/www/bcoeditor/userdb/env/bin/gunicorn --workers 3 --bind 127.0.0.1:8080 portalusers.wsgi:application --access-logfile -
+ExecStart=/var/www/bcoeditor/userdb/env/bin/gunicorn --workers 3 --bind 127.0.0.1:8080 portalusers.wsgi:application --access-logfile /var/log/gunicorn/userdb_stdout.log --log-level=debug --log-file /var/log/gunicorn/userdb_stderr.log
 
 [Install]
 WantedBy=multi-user.target

@@ -16,8 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 
-from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token, verify_jwt_token
-
 # drf_yasg code starts here 
 # https://www.jasonmars.org/2020/04/22/add-swagger-to-django-rest-api-quickly-4-mins-without-hiccups/
 
@@ -46,8 +44,5 @@ urlpatterns = [
     path('users/redoc/', schema_view.with_ui('redoc', cache_timeout=0),
          name='schema-redoc'),  # Here
     path('users/admin/', admin.site.urls),
-    path('users/token-auth/', obtain_jwt_token),
-    path('users/token-refresh/', refresh_jwt_token),
-    path('users/token-verify/', verify_jwt_token),
     path('', include('core.urls'))
 ]

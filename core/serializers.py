@@ -4,11 +4,36 @@ from rest_framework_jwt.settings import api_settings
 from django.contrib.auth.models import User
 
 # API model
-from .models import ApiInfo
+from .models import ApiInfo, Profile
 
 # Groups require special processing.
 # Source: https://stackoverflow.com/questions/33844003/how-to-serialize-groups-of-a-user-with-django-rest-framework/33844179
 from django.contrib.auth.models import Group
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for password change endpoint.
+
+    * Provideds serializer for an old password and a new password
+
+    :param str old_password: the old password
+    :param str new_password: the new password
+    """
+
+    model = User
+
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+# Profile serializer
+class ProfileSerializer(serializers.ModelSerializer):
+
+    # username = serializers.SlugRelatedField(slug_field = 'username', queryset = User.objects.all())
+
+    class Meta:
+        model = Profile
+        fields = ('username', 'public', 'affiliation', 'orcid')
+
 
 
 # API serializer
@@ -33,10 +58,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     apiinfo = ApiSerializer(source='custom_user', many=True)
     groups = GroupSerializer(many=True)
-    
+    profile = ProfileSerializer(many=False)
+
     class Meta:
         model = User
-        fields = ('username', 'password', 'first_name', 'last_name', 'email', 'groups', 'apiinfo',)
+        fields = ('username', 'password', 'first_name', 'last_name', 'email', 'profile', 'groups', 'apiinfo')
 
 
 class UserSerializerWithToken(serializers.ModelSerializer):

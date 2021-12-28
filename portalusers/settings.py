@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from datetime import timedelta
+from os.path import join
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,6 +31,7 @@ DEBUG = True
 # TODO: Is this necessary?
 ALLOWED_HOSTS = ['*']
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Application definition
 
@@ -43,6 +47,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'core.apps.CoreConfig',
     'drf_yasg',
+    'django_rest_passwordreset',
 ]
 
 # Allow requests from the portal.
@@ -128,6 +133,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+
+STATICFILES_DIRS = [
+   # join(BASE_DIR, "static"),
+   ]
+
+
 # Authentication
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -150,10 +162,20 @@ CORS_ORIGIN_WHITELIST = (
     'http://127.0.0.1:8000'
 )
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        }
+    },
+
+}
+
 JWT_AUTH = {
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'portalusers.utils.my_jwt_response_handler',
     'JWT_EXPIRATION_DELTA': timedelta(seconds=604800),
-    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
+    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=14),
+    'JWT_ALLOW_REFRESH': True,
 }
 
 # LOGGING
