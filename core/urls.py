@@ -1,5 +1,5 @@
-from django.urls import path
-from .views import current_user, add_api, remove_api, CreateUser, update_user
+from django.urls import path, include
+from .views import current_user, add_api, remove_api, CreateUser, update_user, ChangePasswordView
 # For favicon and any other static files
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
@@ -14,5 +14,7 @@ urlpatterns = [
     path('users/update_user/', update_user),
     path('users/token-auth/', obtain_jwt_token),
     path('users/token-refresh/', refresh_jwt_token),
-    path('users/token-verify/', verify_jwt_token)
+    path('users/token-verify/', verify_jwt_token),
+    path('users/change_password/', ChangePasswordView.as_view()),
+    path('users/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
 ]

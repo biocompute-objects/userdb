@@ -31,6 +31,7 @@ DEBUG = True
 # TODO: Is this necessary?
 ALLOWED_HOSTS = ['*']
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Application definition
 
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'core.apps.CoreConfig',
     'drf_yasg',
+    'django_rest_passwordreset',
 ]
 
 # Allow requests from the portal.
