@@ -36,6 +36,17 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 
+# Profile serializer
+class ProfileSerializer(serializers.ModelSerializer):
+
+    # username = serializers.SlugRelatedField(slug_field = 'username', queryset = User.objects.all())
+
+    class Meta:
+        model = Profile
+        fields = ('username', 'public', 'affiliation', 'orcid')
+
+
+
 # API serializer
 class ApiSerializer(serializers.ModelSerializer):
 

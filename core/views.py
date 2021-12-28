@@ -66,7 +66,6 @@ class CreateUser(APIView):
 
         # Does this user already exist?
         if User.objects.filter(username = request.data['username']).exists():
-
             # Bad request because the user already exists.
             return Response(status=status.HTTP_409_CONFLICT)
         
