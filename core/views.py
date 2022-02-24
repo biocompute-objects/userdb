@@ -61,8 +61,7 @@ class CreateUser(APIView):
     def post(self, request, format=None):
         
         print('request.data: ')
-        print(request.data)
-        print('===============')
+        print('USERNAME: ', request.data['username'], 'EMAIL: ', request.data['email'], 'PASSWORD')
 
         # Does this user already exist?
         if User.objects.filter(username = request.data['username']).exists():
