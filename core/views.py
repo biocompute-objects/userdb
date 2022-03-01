@@ -179,7 +179,7 @@ def remove_api(request):
 
     # Get the bulk information.
     bulk = json.loads(request.body)
-
+    import pdb; pdb.set_trace()
     for api in bulk['selected_rows']:
         '''
         {'_state': <django.db.models.base.ModelState object at 0x1028e1340>, 'id': 2,
