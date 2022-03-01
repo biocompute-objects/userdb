@@ -1,0 +1,24 @@
+bco_api_user
+bco@bco.org
+biocompute
+
+testertest
+test@testing.com
+testing123
+
+johndoe
+jdoe@testing.com
+testing123
+
+hivelab
+hivelab@testing.com
+testing123
+
+
+1) add all users above.
+2) dump DB: sqlite3 db.sqlite3 .dump > api/fixtures/api_initial.sql
+3) Flush: python manage.py flush
+4) Read DB: sqlite3 db.sqlite3 < api/fixtures/api_initial.sql
+
+
+
