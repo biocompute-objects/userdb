@@ -1,3 +1,7 @@
 from django.contrib import admin
+from core.models import ApiInfo, Prefixes, Profile
 
-# Register your models here.
+
+admin.site.register(ApiInfo)
+admin.site.register(Prefixes)
+admin.site.register(Profile)
