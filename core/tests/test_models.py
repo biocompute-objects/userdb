@@ -10,7 +10,7 @@ from django.urls import reverse
 from core.serializers import UserSerializer, UserSerializerWithToken, ChangePasswordSerializer
 from core.models import Profile
 
-class CreateUserTest(TestCase):
+class UserTests(TestCase):
     """Test for User Creation
 
     User Creation causes a Profile object to be created as well.
@@ -18,7 +18,7 @@ class CreateUserTest(TestCase):
 
     def create_user(self):
         """Creat Test User
-        
+
         """
 
         user_request = {
@@ -47,15 +47,20 @@ class CreateUserTest(TestCase):
 
             return User.objects.get(username=user_request['username'])
         return None
-        
-    def test_create_user(self):
+
+    def test_user(self):
         """Tests for User
-        
+
         """
         user = self.create_user()
-        username = user.username
-        print(username)
-        profile = Profile.objects.get(username=user.id)
+        
         self.assertTrue(isinstance(user, User))
-        self.assertTrue(isinstance(profile, Profile))
         self.assertEquals(user.email, 'test@testing.com')
+
+    def test_profile(self):
+        """Tests for Profile
+
+        """
+        user = self.create_user()
+        profile = Profile.objects.get(username=user.id)
+        self.assertTrue(isinstance(profile, Profile))
