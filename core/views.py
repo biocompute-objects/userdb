@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Views
 """
+
 import json
+import uuid
+from datetime import datetime
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status, generics
@@ -72,12 +75,12 @@ class CreateUser(APIView):
         if User.objects.filter(username = request.data['username']).exists():
             # Bad request because the user already exists.
             return Response(status=status.HTTP_409_CONFLICT)
-        
+
         else:
             profile_object = request.data['profile']
             del request.data['profile'] 
             serializer = UserSerializerWithToken(data=request.data)
-            
+
             if serializer.is_valid():
                 serializer.save()
 
@@ -87,13 +90,9 @@ class CreateUser(APIView):
                         public=profile_object['public'],
                         affiliation=profile_object['affiliation'],
                         orcid=profile_object['orcid'])
-                
+    
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-            
-            else:
-
-                # The request didn't provide what we needed.
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChangePasswordView(generics.UpdateAPIView):
     """
@@ -186,23 +185,13 @@ def remove_api(request):
 
     # Get the bulk information.
     bulk = json.loads(request.body)
-    import pdb; pdb.set_trace()
+
     for api in bulk['selected_rows']:
-        '''
-        {'_state': <django.db.models.base.ModelState object at 0x1028e1340>, 'id': 2,
-        'local_username_id': 4, 'username': 'Test53', 'hostname': 'beta.portal.aws.biochemistry.gwu.edu',
-        'human_readable_hostname': 'BCO Server (Default)', 'public_hostname': 'http://127.0.0.1:8000',
-        'token': '27ab0a38ff99decb885e7e1b525abdbfd641da18',
-        'other_info': {'permissions': {'user': {}, 'groups': {'bco_drafter': {}, 'bco_publisher': {'bco': ['add_BCO', 'change_BCO', 'delete_BCO', 'draft_BCO', 'publish_BCO', 'view_BCO']}, 'Test53': {}}}, 'account_creation': '2021-10-28 02:09:13.061908+00:00', 'account_expiration': ''}}
-        '''
         # TODO: Should also check against the specific server token; needs to be sent from front end
         result = ApiInfo.objects.filter(local_username=user_object, human_readable_hostname=api).delete()
         print(result)
 
-    print('========')
-    print(user)
-    print('=========')
-    return (Response(UserSerializer(request.user).data, status=status.HTTP_200_OK))
+    return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
 
 @swagger_auto_schema(method="post", tags=["API Management"])
 @api_view(['POST'])
@@ -319,6 +308,7 @@ def write_db(values):
         writable.save()
     except ValidationError as error:
         return error
+
 @swagger_auto_schema(method="get", tags=["Prefix Management"])
 @api_view(['GET'])
 def register_prefix(request_data, username, prefix):
@@ -349,7 +339,6 @@ def register_prefix(request_data, username, prefix):
 @permission_classes([])
 def view_prefixes(request_data):
     """View Prefixes
-
     No authentication required to view the list
     """
     prefix_list = search_db(value='all')
