@@ -52,10 +52,10 @@ class UserTests(TestCase):
         """Tests for User
 
         """
+
         user = self.create_user()
-        
         self.assertTrue(isinstance(user, User))
-        self.assertEquals(user.email, 'test@testing.com')
+        self.assertEqual(user.email, 'test@testing.com')
 
     def test_profile(self):
         """Tests for Profile
