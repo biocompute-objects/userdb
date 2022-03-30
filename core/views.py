@@ -13,10 +13,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.serializers import serialize
 from django.core.exceptions import ValidationError
-from django.http import HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from core.models import ApiInfo, Profile, Prefixes
-from .serializers import UserSerializer, UserSerializerWithToken, ChangePasswordSerializer
+from .serializers import ApiSerializer, UserSerializer, UserSerializerWithToken, ChangePasswordSerializer
+from datetime import datetime
+import uuid
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class CreateUser(APIView):
     """Create a new user
@@ -303,6 +308,7 @@ def write_db(values):
         writable.save()
     except ValidationError as error:
         return error
+
 @swagger_auto_schema(method="get", tags=["Prefix Management"])
 @api_view(['GET'])
 def register_prefix(request_data, username, prefix):
@@ -333,7 +339,6 @@ def register_prefix(request_data, username, prefix):
 @permission_classes([])
 def view_prefixes(request_data):
     """View Prefixes
-
     No authentication required to view the list
     """
     prefix_list = search_db(value='all')
