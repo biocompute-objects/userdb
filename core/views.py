@@ -244,7 +244,7 @@ def update_user(request):
 
     # Get the user with associated username
     user_object = User.objects.get(username=user)
-    profile_object = Profile.objects.get_or_create(username=user_object)
+    profile_object, created = Profile.objects.get_or_create(username=user_object)
     bulk = json.loads(request.body)
     bulk.pop('username')
     if 'token' in bulk.keys():
