@@ -1,8 +1,8 @@
-bco_api_user
+bco_api_user	superuser
 bco@bco.org
 biocompute
 
-testertest
+testertest	
 test@testing.com
 testing123
 
@@ -23,19 +23,33 @@ DB Backup
 4) Read DB: sqlite3 db.sqlite3 < api/fixtures/api_initial.sql
 
 Make a prefix work:
-1) create prefix with wheel:
-	-> Permissions NOT created!
-	
-curl -X POST "http://localhost:8000/api/prefixes/create/" -H  "accept: application/json" -H  "Authorization: Token f419eb53f7738be1debbf5cf3ec73ec64cda3fea" -H  "Content-Type: application/json" -H  "X-CSRFToken: DZQfV9c7aN6QC4QYhLCOkrOr0xWxyQxmaKUIS6RbEV6sVaioOollZhpODwbptPd7" -d "{    \"POST_api_prefixes_create\": [        {            \"owner_group\": \"bco_publisher\",            \"owner_user\": \"hivelab12\",            \"prefixes\": [                {                    \"description\": \"Just a test prefix.\",                    \"prefix\": \"testR\"                }            ]        }    ]}"
-
-2) create BCO with new prefix
+1) add `bco_api_user` to prefix_admin
 {
-  "POST_api_objects_draft_create": [
+  "POST_api_groups_modify": [
     {
-      "prefix": "TESTR",
-      "owner_group": "bco_drafter",
-      "schema": "IEEE",
-      "contents": {"object_id":"http://127.0.0.1:8000/TESTR_000001/DRAFT","spec_version":"https://w3id.org/ieee/ieee-2791-schema/2791object.json","etag":"b6324aa35695c52c7b89a8baed7d57a5b591e7f64c1449210a2efefacc7f019c","provenance_domain":{"name":"biosampleMeta from SRA - HIVE Lab","version":"DRAFT","created":"2022-01-19T19:46:23.673Z","modified":"2022-03-01T11:33:05.423293","contributors":[{"contribution":["createdBy","curatedBy"],"name":"Charles Hadley King","affiliation":"George Washington University","email":"hadley_king@gwu.edu","orcid":"https://orcid.org/0000-0003-1409-4549"},{"name":"Raja Mazumder","contribution":["contributedBy"],"affiliation":"George Washington University","email":"mazumder@gwu.edu","orcid":"https://orcid.org/0000-0001-8823-9945"},{"name":"Jonathon Keeney","contribution":["createdBy"],"affiliation":"George Washington University","email":"keeneyjg@gwu.edu"}],"license":"https://github.com/FDA-ARGOS/data.argosdb/tree/v.03/LICENSE"},"usability_domain":["BioSample metadata extracted from SRA using the HIVE Lab workflow.","NCBI's SRA BiosampleDB has a great deal of metadata collected upon submission. For this data set NCBI eutils esearch was run (https://www.ncbi.nlm.nih.gov/books/NBK25499/) to retrieve all biosample metadata XML files from a BioProject. The metadata was parsed resulting in this table which contains identifiers linking each record to multiple other NCBI databases. The primary use case for this data set is to provide a method to quickly evaluate the metrics associated with specific biosamples, or a subset of the files referenced in this set."],"description_domain":{"keywords":["NGS, SRA, QAQC, metadata"],"pipeline_steps":[{"step_number":0,"name":"efetch_bioproject_biosample.sh","description":"# Retrieve all BioSamples from ARGOS BioProject","prerequisite":[{"name":"edirect","uri":{"uri":"https://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/versions/current/edirect-16.5.20220109.tar.gz","filename":"edirect-16.5.20220109.tar.gz","access_time":"2022-01-11T15:46:39-0500"}}],"input_list":[{"uri":"https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA231221","filename":"PRJNA231221"}],"output_list":[{"uri":"file:///home/PRJNA231221_biosamples.xml","filename":"PRJNA231221_runs.xml"}]},{"step_number":0,"name":"sra_sample.py","description":"SRA Biosample Parser\n\nThis script will parse the XML result file from a list of SRA samples(SRS). It takes a\nsingle XML file as input, parsing it first a dictionary, and then\noutputting to the terminal in TSV format, or to a file if an output file is provided.","prerequisite":[],"input_list":[{"uri":"https://github.com/FDA-ARGOS/data.argosdb/blob/v0.3_Jan/lhoPRJNA231221_biosamples.xml","filename":"PRJNA231221_biosamples.xml"}],"output_list":[{"uri":"https://github.com/FDA-ARGOS/data.argosdb/blob/v0.3_Jan/data_files/biosampleMeta.tsv","filename":"biosampleMeta.tsv"}]}]},"execution_domain":{"script":[{"uri":{"uri":"https://github.com/FDA-ARGOS/data.argosdb/v0.3_Jan/lib/efetch_bioproject_biosample.sh","filename":"efetch_bioproject_biosample.sh","access_time":"2022-01-11T15:46:39-0500"}},{"uri":{"uri":"https://github.com/FDA-ARGOS/data.argosdb/v0.3_Jan/lib/sra_sample.py","filename":"sra_sample.py","access_time":"2022-01-11T15:46:39-0500"}}],"script_driver":"shell","software_prerequisites":[{"name":"edirect","version":"16.5","uri":{"uri":"https://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/versions/current/edirect-16.5.20220109.tar.gz","filename":"edirect-16.5.20220109.tar.gz","access_time":"2022-01-11T15:46:39-0500"}},{"name":"Python","version":"3.9.4","uri":{"uri":"https://www.python.org/ftp/python/3.9.4/python-3.9.4-macosx10.9.pkg","filename":"python-3.9.4-macosx10.9.pkg","access_time":"2022-01-11T15:46:39-0500"}}],"external_data_endpoints":[{"name":"Entrez Eutils","url":"https://www.ncbi.nlm.nih.gov/entrez"},{"name":"GitHub.com/FDA-ARGOS","url":"https://github.com/FDA-ARGOS/data.argosdb"}],"environment_variables":{}},"io_domain":{"input_subdomain":[{"uri":{"uri":"http://data.argosdb.org/ln2downloads/biosample/2022_01_19/biosampleMeta.tsv","filename":"","access_time":"2022-01-11T15:46:39-0500"}}],"output_subdomain":[{"mediatype":"text/tsv","uri":{"uri":"http://data.argosdb.org/ln2data/biosample/2022_01_19/biosampleMeta.tsv","filename":"biosampleMeta.tsv","access_time":"2022-01-11T15:46:39-0500"}}]},"extension_domain":[{"extension_schema":"http://www.w3id.org/biocompute/extension_domain/1.1.0/dataset/dataset_extension.json","dataset_extension":{"additional_license":{"data_license":"https://creativecommons.org/licenses/by/4.0/","script_license":"https://www.gnu.org/licenses/gpl-3.0.en.html"},"dataset_categories":[{"category_value":"Other","category_name":"species"},{"category_value":"nucleotide","category_name":"molecule"},{"category_value":"biosampleMeta","category_name":"tag"},{"category_value":"Core Table","category_name":"tag"},{"category_value":"tsv","category_name":"file_type"},{"category_value":"reviewed","category_name":"status"},{"category_value":"internal","category_name":"scope"}]}},{"extension_schema":"https://w3id.org/biocompute/extension_domain/1.1.0/scm/scm_extension.json","scm_extension":{"scm_repository":"https://github.com/FDA-ARGOS/data.argosdb","scm_type":"git","scm_commit":"bf297f4","scm_path":"data.argosdb/data_files/biosampleMeta.tsv","scm_preview":"https://github.com/FDA-ARGOS/data.argosdb/blob/bf297f4d9fdd733c769d19c2cb75108d273ae364/data_files/biosampleMeta.tsv"}}],"parametric_domain":[]}
+      "name": "prefix_admins",
+      "actions": {
+        "add_users": [
+          "bco_api_user"
+        ]
+      }
     }
   ]
+}
+
+
+2) create new prefix
+{
+    "POST_api_prefixes_create": [
+        {
+            "owner_group": "bco_api_user",
+            "owner_user": "bco_api_user",
+            "prefixes": [
+                {
+                    "description": "Just a test prefix.",
+                    "prefix": "testR"
+                }
+            ]
+        }
+    ]
 }
