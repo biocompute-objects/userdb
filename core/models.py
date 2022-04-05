@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""Customer user model.
-    Source: https://docs.djangoproject.com/en/3.1/topics/auth/customizing/#extending-the-existing-user-model
-    Source: https://docs.djangoproject.com/en/3.1/topics/db/models/#many-to-one-relationships
+"""Models
+
 """
 
 from django.db import models
@@ -42,30 +41,48 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
                 f" Check with your database administrator for your token. {error}"})
 
 class Profile(models.Model):
-    """
+    """Profile
+
     Modle for storing additional user information
-    Public Profile
-    User Affiliation
-    User ORCID
+    Attributes
+    ----------
+    username: User
+        User name for profile
+    public: bool
+        Bool to indicate if the user would like their Profile public
+    affiliation: str
+        User Affiliation
+    orcid:
+        User ORCID
     """
     username = models.OneToOneField(User, on_delete=models.CASCADE)
     public = models.BooleanField(blank = True, default=False)
     affiliation = models.CharField(blank = True, max_length = 1000)
     orcid = models.CharField(blank = True, max_length = 1000)
 
+    def __str__(self):
+        """String for representing the Profile model (in Admin site etc.)."""
+        return str(f'{self.username}')
 
 class ApiInfo(models.Model):
     """API Information
-    API Information is kept separate so that we can use it
-    elsewhere easily.
-    Set the local user.
-    Servers for which the user has keys.
-    The username on the server.
-    max_length = 15 because hostnames are xxx.xxx.xxx.xxx
-    Need to use a human-readable hostname
-    Need to know where to make calls.
-    "Arbitrarily" long token
-    Permissions and other information.
+    API Information is kept separate so that we can use it elsewhere easily.
+
+    Attributes
+    ----------
+    username : str
+        Set the local user.
+    hostname: str
+        Servers for which the user has keys. max_length = 15 because
+        hostnames are xxx.xxx.xxx.xxx
+    human_readable_hostname: str
+        The human readable name of the server.
+    public_hostname: str
+        Public address for the server. Need to know where to make calls.
+    token: str
+        "Arbitrarily" long token
+    other_info: JSON
+        Permissions and other information.
     """
 
     local_username = models.ForeignKey(
@@ -80,11 +97,25 @@ class ApiInfo(models.Model):
     token = models.CharField(blank = True, max_length = 1000)
     other_info = models.JSONField()
 
+    def __str__(self):
+        """String for representing the ApiInfo model (in Admin site etc.)."""
+        return str(f'{self.username} at {self.hostname}')
+
 class Prefixes(models.Model):
     """Prefix Table: core_prefixes
 
+    Attributes
+    ----------
+    username: str
+    prefix: str
+    registration_date: datetime
+    registration_certificate: str
     """
     username = models.CharField(max_length = 100)
     prefix = models.CharField(max_length = 5, primary_key=True, unique=True)
     registration_date = models.DateTimeField()
     registration_certificate = models.CharField(max_length = 1000)
+
+    def __str__(self):
+        """String for representing the Prefix (in Admin site etc.)."""
+        return str(self.prefix)

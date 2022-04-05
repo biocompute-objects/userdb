@@ -199,14 +199,9 @@ def add_api(request):
     """
     Update a user's information based on their token.
     """
-    
-    # Get the user.
-    print('U check')
-    print(UserSerializer(request.user).data)
-    user = UserSerializer(request.user).data['username']
 
-    # TODO: right way to do this?
-    # Get the user ID so that we can link across tables.
+    # Get the user.
+    user = UserSerializer(request.user).data['username']
     user_object = User.objects.get(username = user)
 
     # Get the bulk information.
@@ -215,28 +210,39 @@ def add_api(request):
     # Add the key for the user.
     api_object = ApiInfo(
     	local_username = user_object,
-        username = bulk['username'], 
-    	hostname = bulk['hostname'], 
-    	human_readable_hostname = bulk['human_readable_hostname'], 
+        username = bulk['username'],
+    	hostname = bulk['hostname'],
+    	human_readable_hostname = bulk['human_readable_hostname'],
         public_hostname = bulk['public_hostname'],
     	token = bulk['token'],
         other_info = bulk['other_info']
     )
-    
-    api_object.save()
 
-    print('========')
-    print(user)
-    print(api_object)
-    print('=========')
+    api_object.save()
     return(Response(UserSerializer(request.user).data, status=status.HTTP_201_CREATED))
 
-
-@swagger_auto_schema(method="post", tags=["Account Management"])
+update_user_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    title="Update User Information",
+    description="Update a user's information.",
+    required=[],
+    properties={
+        'first_name': openapi.Schema(type=openapi.TYPE_STRING),
+        'last_name': openapi.Schema(type=openapi.TYPE_STRING),
+        'email': openapi.Schema(type=openapi.TYPE_STRING),
+        'groups': openapi.Schema(type=openapi.TYPE_STRING),
+        'password': openapi.Schema(type=openapi.TYPE_STRING),
+        'username': openapi.Schema(type=openapi.TYPE_STRING),
+        'affiliation': openapi.Schema(type=openapi.TYPE_STRING),
+        'orcid': openapi.Schema(type=openapi.TYPE_STRING),
+        'public': openapi.Schema(type=openapi.TYPE_STRING)
+    }
+)
+@swagger_auto_schema(method="post", request_body=update_user_schema, tags=["Account Management"])
 @api_view(['POST'])
 def update_user(request):
     """
-    Update a user's information. Could probably be merged with add_api, or take over add_api
+    Update a user's information.
     """
 
     # Get the username
@@ -317,7 +323,7 @@ def register_prefix(request_data, username, prefix):
     Is the prefix available?
     Prefix is available, so register it.
     """
-    
+
     if(request_data.method == 'GET'):
         if search_db(prefix) == 0:
             if write_db({
