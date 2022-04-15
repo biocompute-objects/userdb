@@ -13,7 +13,10 @@ def update_api_info(api):
     url = api['public_hostname']+'/api/accounts/describe/'
     token = api['token']
     header =  {'Authorization': f'Token {token}'}
-    response = requests.post(url, headers=header)
+    try: 
+        response = requests.post(url, headers=header)
+    except requests.exceptions.ConnectionError:
+        return 'ConncetionError'
     return json.loads(response.text)
 
 def my_jwt_response_handler(token, user=None, request=None):
@@ -27,9 +30,10 @@ def my_jwt_response_handler(token, user=None, request=None):
     user_info = UserSerializer(user, context={'request': request}).data
     for api in user_info['apiinfo']:
         updated_api = update_api_info(api)
-        new = ApiInfo.objects.get(token=updated_api['token'])
-        new.other_info = updated_api['other_info']
-        new.save()
+        if updated_api != 'ConncetionError':
+            new = ApiInfo.objects.get(token=updated_api['token'])
+            new.other_info = updated_api['other_info']
+            new.save()
         # print(new.other_info)
 
     user_info['groups'] = [list(i.items())[0][1] for i in user_info['groups']]
