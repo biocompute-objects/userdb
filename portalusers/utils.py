@@ -28,7 +28,7 @@ def update_api_info(api):
                 data=json.loads(response.text)
         )
     if response.status_code is 400:
-        return Response(status=status.HTTP_400_BAD_REQUEST, 
+        return Response(status=status.HTTP_400_BAD_REQUEST,
                 data=json.loads(response.text)
         )
 
@@ -53,6 +53,6 @@ def my_jwt_response_handler(token, user=None, request=None):
         api_object.other_info['status'] = api_update.status_code
         api_object.save()
 
-    print(api_object.other_info)
+    # print(api_object.other_info)
     user_info['groups'] = [list(i.items())[0][1] for i in user_info['groups']]
     return {'token': token, 'user': user_info}
