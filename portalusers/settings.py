@@ -10,10 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
-import os
 from pathlib import Path
 from datetime import timedelta
-from os.path import join
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,10 +26,11 @@ SECRET_KEY = 'g6$hm-04*#=aedyrt@1nvig1a0bdzm_gmxfnl0k*+0q0ostl2c'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# TODO: Is this necessary?
 ALLOWED_HOSTS = ['*']
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+VERSION = '22.06'
 
 # Application definition
 
