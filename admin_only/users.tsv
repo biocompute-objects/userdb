@@ -1,56 +1,42 @@
-bco_api_user	superuser
-bco@bco.org
-biocompute
-	Group Owner: testing
-
-testertest	
-test@testing.com
-testing123
-
-johndoe
-jdoe@testing.com
-testing123
-
-hivelab
-hivelab@testing.com
-testing123
-
-
-DB Backup
-=======
-1) add all users above.
-2) dump DB: sqlite3 db.sqlite3 .dump > api/fixtures/api_initial.sql
-3) Flush: python manage.py flush
-4) Read DB: sqlite3 db.sqlite3 < api/fixtures/api_initial.sql
-
-Make a prefix work:
-1) add `bco_api_user` to prefix_admin
-{
-  "POST_api_groups_modify": [
-    {
-      "name": "prefix_admins",
-      "actions": {
-        "add_users": [
-          "bco_api_user"
-        ]
-      }
-    }
-  ]
-}
-
-
-2) create new prefix
-{
-    "POST_api_prefixes_create": [
-        {
-            "owner_group": "bco_api_user",
-            "owner_user": "bco_api_user",
-            "prefixes": [
-                {
-                    "description": "Just a test prefix.",
-                    "prefix": "testR"
-                }
-            ]
-        }
-    ]
-}
+users username	users email	users first	users last	users SU	users Profile	users API INFO	api username	api email	api first	api last	api SU	api groups
+bco_api_user	bco@bco.org	BioCompute	Objects	yes	bco_api_user	bco_api_user at 127.0.0.1:8000	bco_api_user	bco@bco.org	-	-	yes	"bco_drafter, bco_publisher, prefix_admins, bco_api_user, test_drafter, test_publisher, other_drafter, other_publisher"
+hivelab	hivelab@testing.com	HIVE	Lab	no	hivelab	hivelab37 at 127.0.0.1:8000	hivelab37	-	-	-	no	"bco_drafter, bco_publisher, hivelab37"
+johndoe	jdoe@testing.com	John	Doe	no	johndoe	jdoe58 at 127.0.0.1:8000	jdoe58	-	-	-	no	"bco_drafter, bco_publisher, jdoe58"
+testertest	test@testing.com	Testing	Test	no	testertest	test50 at 127.0.0.1:8000	test50	-	-	-	no	"bco_drafter, bco_publisher, test50, test_drafter"
+-	-	-	-	-		-	AnonymousUser	-	-	-	no	-
+-	-	-	-	-		-	anon	-	-	-	no	-
+-	-	-	-	-		-	bco_drafter	-	-	-	no	-
+-	-	-	-	-		-	bco_publisher	-	-	-	no	-
+-	-	-	-	-		-	wheel	-	-	-	yes	-
+												
+												
+Groups	members		Group Info									
+AnonymousUser	AnonymousUser		-									
+anon	anon		-									
+bco_api_user	bco_api_user		-									
+bco_drafter	bco_drafter		-									
+bco_publisher	bco_publisher		-									
+group_admins	group_admins		group_admins									
+hivelab37	hivelab37		-									
+jdoe58	jdoe58		-									
+other_drafter	other_drafter		other_drafter									
+other_publisher	other_publisher		other_publisher									
+prefix_admins	prefix_admins		prefix_admins									
+test50	test50		-									
+test_drafter	test_drafter		test_drafter									
+test_publisher	test_publisher		test_publisher									
+wheel	wheel		-									
+												
+BCO	state	prefix	user	group								
+BCO_000000/1.0	PUBLISHED	BCO	bco_api_user	bco_api_user								
+BCO_000000/DRAFT	DRAFT	BCO	bco_api_user	bco_drafter								
+BCO_000001/1.0	PUBLISHED	BCO	test50	test50								
+BCO_000001/DRAFT	DRAFT	BCO	test50	bco_drafter								
+BCO_000002/1.0	PUBLISHED	BCO	hivelab37	hivelab37								
+BCO_000002/DRAFT	DRAFT	BCO	hivelab37	bco_drafter								
+BCO_000003/1.0	PUBLISHED	BCO	jdoe58	jdoe58								
+BCO_000003/DRAFT	DRAFT	BCO	jdoe58	bco_drafter								
+OTHER_000001/1.0	PUBLISHED	OTHER	bco_api_user	bco_api_user								
+OTHER_000001/DRAFT	DRAFT	OTHER	bco_api_user	other_drafter								
+TEST_000001/1.2	PUBLISHED	TEST	test50	bco_api_user								
+TEST_000001/DRAFT	DRAFT	TEST	test50	test_drafter								
