@@ -2,7 +2,9 @@
 """Views
 """
 
+from itertools import chain
 import json
+from multiprocessing.sharedctypes import Value
 import uuid
 from datetime import datetime
 from drf_yasg import openapi
@@ -279,17 +281,35 @@ def search_db(value):
     """
     Arguments
     ---------
-    
     value: string to look for
 
     Look in the database for a given value.
     Get the entire db.
     """
+
+    return_values = [
+        "username",
+        "prefix",
+        "registration_date",
+        "registration_certificate"
+
+
+    ]
+    # if value == 'all':
+    #     results = serialize("json", Prefixes.objects.all())
+    #     return results
+
     if value == 'all':
-        whole_db = people = serialize("json", Prefixes.objects.all())
-        return whole_db
-    whole_db = Prefixes.objects.filter(prefix=value)
-    return len(whole_db)
+        results = list(chain(
+            Prefixes.objects.all()
+            .values(*return_values)
+        ))
+    else:
+        results = list(chain(
+            Prefixes.objects.filter(prefix=value)
+            .values(*return_values)
+        ))
+    return results
 
 def write_db(values):
     """
@@ -339,14 +359,66 @@ def register_prefix(request_data, username, prefix):
         else:
             return HttpResponse(content='Prefix \'' + prefix + '\' was not available.', status=409)
 
-@swagger_auto_schema(method="get", tags=["Prefix Management"])
-@api_view(['GET'])
-@authentication_classes([])
-@permission_classes([])
-def view_prefixes(request_data):
-    """View Prefixes
-    No authentication required to view the list
+class SearchPrefix(APIView):
+    """Search Prefix DB
+
     """
-    prefix_list = search_db(value='all')
-    print(prefix_list)
-    return HttpResponse(content=prefix_list, status=200)
+
+    authentication_classes = []
+    permission_classes = []
+
+    post_userdb_prefix_search_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Prefix Search",
+        description="Search for a BCO Prefix",
+        required=[],
+        properties={
+            "search_term": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='Search term'
+            ),
+            "search_type": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Search type"
+            )
+        }
+    )
+    request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        title="Prefix Search",
+        required=['post_userdb_prefix_search_schema'],
+        properties={
+            'post_userdb_prefix_search_schema': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=post_userdb_prefix_search_schema
+            )
+        }
+    )
+
+    @swagger_auto_schema(
+        request_body=request_body,
+        responses={
+            200: "Search results",
+            404: "object not found",
+            500: "invalid search"
+        },
+        tags=["Prefix Management"]
+    )
+
+    def post(self, request):
+        """Post"""
+        search_list = request.data['post_userdb_prefix_search']
+        for item in search_list:
+            type = item['search_type']
+            term = item['search_term']
+            if type == 'search' and term is not None:
+                prefix_results = search_db(value=term.upper())
+
+            if type == 'all':
+                prefix_results = search_db(value='all')
+            if term is None and type == 'search':
+                prefix_results = search_db(value='all')
+            if term == '' and type == 'search':
+                prefix_results = search_db(value='all')
+        # prefix_results = search_db(value='all')
+        return Response(data=prefix_results, status=status.HTTP_200_OK)

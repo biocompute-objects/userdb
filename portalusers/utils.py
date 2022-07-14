@@ -3,6 +3,7 @@
 """
 
 import json
+import datetime
 import requests
 from rest_framework import status
 from rest_framework.response import Response
@@ -47,9 +48,8 @@ def my_jwt_response_handler(token, user=None, request=None):
         api_object = ApiInfo.objects.get(token=api['token'])
         api_update = update_api_info(api)
         if api_update.status_code == 200:
-            # import pdb; pdb.set_trace()
             api_object.other_info = api_update.data['other_info']
-
+            api_object.other_info['last_update'] = f"{datetime.datetime.utcnow().isoformat()[:-2]}Z"
         api_object.other_info['status'] = api_update.status_code
         api_object.save()
 
