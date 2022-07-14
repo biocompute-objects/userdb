@@ -15,7 +15,7 @@ from core.views import (
     update_user,
     ChangePasswordView,
     register_prefix,
-    view_prefixes
+    SearchPrefix
 )
 
 urlpatterns = [
@@ -34,5 +34,5 @@ urlpatterns = [
         namespace='password_reset')
     ),
     path('users/register_prefix/<str:username>/<str:prefix>', register_prefix, name='register'),
-    path('users/prefixes/', view_prefixes, name='view'),
+    path('users/prefixes/', SearchPrefix.as_view()),
 ]
