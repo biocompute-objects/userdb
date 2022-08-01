@@ -4,30 +4,24 @@
 
 from itertools import chain
 import json
-from multiprocessing.sharedctypes import Value
 import uuid
 from datetime import datetime
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status, generics
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.core.serializers import serialize
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseRedirect, HttpResponse
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.http import HttpResponse
 from django.contrib.auth.models import User
+from rest_framework_jwt.views import VerifyJSONWebTokenSerializer
 from core.models import ApiInfo, Profile, Prefixes
-from .serializers import ApiSerializer, UserSerializer, UserSerializerWithToken, ChangePasswordSerializer
-from datetime import datetime
-import uuid
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from .serializers import UserSerializer, UserSerializerWithToken, ChangePasswordSerializer
 
 class CreateUser(APIView):
     """Create a new user
-    
+
     Create a new user
     """
 
@@ -46,7 +40,7 @@ class CreateUser(APIView):
                 description='Token returned with new user being '),
             'profile' : openapi.Schema(
                 type=openapi.TYPE_OBJECT,
-                description='Token returned with new user being ', 
+                description='Token returned with new user being ',
                 required=['username'],
                 properties={
                     'username': openapi.Schema(type=openapi.TYPE_STRING,
@@ -68,7 +62,7 @@ class CreateUser(APIView):
             500: "Unable to save the new account or send authentication email."
             }, tags=["Account Management"])
 
-    def post(self, request, format=None):
+    def post(self, request):
         """doc"""
         print('request.data: ')
         print('USERNAME: ', request.data['username'], 'EMAIL: ', request.data['email'], 'PASSWORD')
@@ -80,7 +74,7 @@ class CreateUser(APIView):
 
         else:
             profile_object = request.data['profile']
-            del request.data['profile'] 
+            del request.data['profile']
             serializer = UserSerializerWithToken(data=request.data)
 
             if serializer.is_valid():
@@ -92,7 +86,7 @@ class CreateUser(APIView):
                         public=profile_object['public'],
                         affiliation=profile_object['affiliation'],
                         orcid=profile_object['orcid'])
-    
+
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -116,7 +110,7 @@ class ChangePasswordView(generics.UpdateAPIView):
                     description='Token returned with new user being ')
         }
     )
-    
+
     @swagger_auto_schema(request_body=request_body, responses={
             200: "Password updated successfully.",
             400: "Bad request.",
@@ -277,11 +271,12 @@ def update_user(request):
             })
 
 
-def search_db(value):
+def search_db(value, user=None):
     """
     Arguments
     ---------
     value: string to look for
+    user: user object
 
     Look in the database for a given value.
     Get the entire db.
@@ -295,20 +290,24 @@ def search_db(value):
 
 
     ]
-    # if value == 'all':
-    #     results = serialize("json", Prefixes.objects.all())
-    #     return results
 
     if value == 'all':
         results = list(chain(
             Prefixes.objects.all()
             .values(*return_values)
         ))
-    else:
+    elif user is not None:
         results = list(chain(
-            Prefixes.objects.filter(prefix=value)
+            Prefixes.objects.filter(username_id=user.username)
             .values(*return_values)
         ))
+        # import pdb; pdb.set_trace()
+    else:
+        results = list(chain(
+            Prefixes.objects.filter(prefix__icontains=value)
+            .values(*return_values)
+        ))
+
     return results
 
 def write_db(values):
@@ -337,17 +336,25 @@ def write_db(values):
 
 @swagger_auto_schema(method="get", tags=["Prefix Management"])
 @api_view(['GET'])
-def register_prefix(request_data, username, prefix):
+def register_prefix(request, username, prefix):
     """
     Base the response on the request method.
     Is the prefix available?
     Prefix is available, so register it.
     """
+    # import pdb; pdb.set_trace()
+    try:
+        user = User.objects.get(username=username)
+    except:
+        return HttpResponse(content='The username provided does not match the user DB.  Please login or create an account and re-submit.', status=401)  
 
-    if(request_data.method == 'GET'):
-        if search_db(prefix) == 0:
+    if request.method == 'GET':
+        results = list(chain(
+            Prefixes.objects.filter(prefix=prefix)
+        ))
+        if len(results) == 0:
             if write_db({
-                'username': username,
+                'username': user,
                 'prefix': prefix,
                 'registration_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'registration_certificate': uuid.uuid4().hex
@@ -411,9 +418,18 @@ class SearchPrefix(APIView):
         for item in search_list:
             type = item['search_type']
             term = item['search_term']
+            if type == 'mine':
+                token = request.META.get('HTTP_AUTHORIZATION', " ").split(' ')[1]
+                data = {'token': token}
+                try:
+                    valid_data = VerifyJSONWebTokenSerializer().validate(data)
+                    user = valid_data['user']
+                    request.user = user
+                except ValidationError as error:
+                    print("validation error", error)
+                prefix_results = search_db(value='MINE', user=user)
             if type == 'search' and term is not None:
                 prefix_results = search_db(value=term.upper())
-
             if type == 'all':
                 prefix_results = search_db(value='all')
             if term is None and type == 'search':
