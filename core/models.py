@@ -111,8 +111,13 @@ class Prefixes(models.Model):
     registration_date: datetime
     registration_certificate: str
     """
-    username = models.CharField(max_length = 100)
+
     prefix = models.CharField(max_length = 5, primary_key=True, unique=True)
+    username = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        to_field="username"
+    )
     registration_date = models.DateTimeField()
     registration_certificate = models.CharField(max_length = 1000)
 
