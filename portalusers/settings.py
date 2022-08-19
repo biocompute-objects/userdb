@@ -164,7 +164,7 @@ SWAGGER_SETTINGS = {
             'type': 'basic'
         }
     },
-
+    "DEEP_LINKING": True
 }
 
 JWT_AUTH = {
