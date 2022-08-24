@@ -2,9 +2,12 @@
 """Views
 """
 
+from email import header
 from itertools import chain
 import json
+from sys import prefix
 import uuid
+import requests
 from datetime import datetime
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -18,6 +21,7 @@ from django.contrib.auth.models import User
 from rest_framework_jwt.views import VerifyJSONWebTokenSerializer
 from core.models import ApiInfo, Profile, Prefixes
 from .serializers import UserSerializer, UserSerializerWithToken, ChangePasswordSerializer
+from django.core.exceptions import ObjectDoesNotExist
 
 class CreateUser(APIView):
     """Create a new user
@@ -301,7 +305,6 @@ def search_db(value, user=None):
             Prefixes.objects.filter(username_id=user.username)
             .values(*return_values)
         ))
-        # import pdb; pdb.set_trace()
     else:
         results = list(chain(
             Prefixes.objects.filter(prefix__icontains=value)
@@ -314,17 +317,16 @@ def write_db(values):
     """
     Arguments
     ---------
-
     values: dictionary with values
 
     Write the values to the database.
     Call full_clean to make sure we have valid input.
     Source: https://docs.djangoproject.com/en/3.1/ref/models/instances/#validating-objects
     """
-
+    import pdb; pdb.set_trace()
     writable = Prefixes(
         username = values['username'],
-        prefix = values['prefix'],
+        prefix = values['prefix'].upper(),
         registration_date = values['registration_date'],
         registration_certificate = values['registration_certificate'],
     )
@@ -334,37 +336,122 @@ def write_db(values):
     except ValidationError as error:
         return error
 
-@swagger_auto_schema(method="get", tags=["Prefix Management"])
-@api_view(['GET'])
-def register_prefix(request, username, prefix):
+@swagger_auto_schema(method="post", tags=["Prefix Management"])
+@api_view(['POST'])
+def register_prefix(request):
     """
     Base the response on the request method.
     Is the prefix available?
     Prefix is available, so register it.
+    ```JSON
+    {
+        "POST_register_prefix": [
+        {
+            "username": "anon",
+            "prefix": "testR",
+            "public": "true",
+            "description":  "Just a test prefix.",
+        }
+        ]
+    }
+    ```
     """
-    # import pdb; pdb.set_trace()
-    try:
-        user = User.objects.get(username=username)
-    except:
-        return HttpResponse(content='The username provided does not match the user DB.  Please login or create an account and re-submit.', status=401)  
 
-    if request.method == 'GET':
+    bulk_request = request.data['POST_register_prefix']
+    return_data = []
+    any_failed = False
+    for new_prefix in bulk_request:
+
+        try:
+            user = User.objects.get(username=new_prefix['username'])  
+        except ObjectDoesNotExist:
+            return_data.append(
+                {
+                    "request_status":"FAILURE",
+		            "status_code":"401",
+		            "message":"The username provided does not match the user DB. "+ \
+                        "Please login or create an account and re-submit."
+                }
+            )
+            any_failed = True
+
         results = list(chain(
-            Prefixes.objects.filter(prefix=prefix)
+            Prefixes.objects.filter(prefix=new_prefix['prefix'])
         ))
+
         if len(results) == 0:
+            api_object= ApiInfo.objects.get(local_username=user, human_readable_hostname='BCO Server (Default)')
+            if new_prefix['public'] == 'false':
+                owner_group = api_object.username
+            else:
+                owner_group = 'bco_drafter'
+            owner_user = api_object.username
+            headers = {
+                "Authorization": "Token " + api_object.token,
+                "Content-type": "application/json; charset=UTF-8",
+            }
+
+            bco_api = requests.post(
+                data=json.dumps({
+                  'POST_api_prefixes_create': [
+                    {
+                      'owner_group': owner_group,
+                      'owner_user': owner_user,
+                      "prefixes": [
+                        {
+                            'description': new_prefix['description'],
+                            'prefix': new_prefix['prefix']
+                        }
+                      ]
+                    }
+                  ]
+                }),
+                headers=headers,
+                url=api_object.public_hostname + '/api/prefixes/create/'
+            )
+            if bco_api.status_code != 200:
+                return_data.append(bco_api.json()[0])
+                any_failed = True
+                continue
+            import pdb; pdb.set_trace()
             if write_db({
                 'username': user,
-                'prefix': prefix,
+                'prefix': new_prefix['prefix'],
                 'registration_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'registration_certificate': uuid.uuid4().hex
             }) is not None:
-                return HttpResponse(content='The prefix provided does not match the format required.  Please adjust the prefix and re-submit.', status=400)
-            else:
-                return HttpResponse(content='Prefix \'' + prefix + '\' successfully registered for e-mail \'' + username + '\'.  Check your e-mail for a registration receipt.', status=201)
+                return_data.append(
+                    {
+                        "request_status":"FAILURE",
+                        "status_code":"400",
+                        "message":f"The {prefix} provided does not match the format required."
+                    }
+                )
+                any_failed = True
+
+            return_data.append(
+                {
+                    "request_status":"SUCCESS",
+                    "status_code":"201",
+                    "message":f"The Prefix {prefix} provided was " + \
+                        f"successfullyregistered for {owner_user}."
+                }
+            )
 
         else:
-            return HttpResponse(content='Prefix \'' + prefix + '\' was not available.', status=409)
+            return_data.append(
+                {
+                    "request_status":"FAILURE",
+		            "status_code":"409",
+		            "message":f"The Prefix {prefix} provided is not available."
+                }
+            )
+            any_failed = True
+
+    if any_failed:
+        return Response(status=status.HTTP_207_MULTI_STATUS, data=return_data)
+    
+    return Response(status=status.HTTP_200_OK, data=return_data)
 
 class SearchPrefix(APIView):
     """Search Prefix DB
@@ -416,9 +503,9 @@ class SearchPrefix(APIView):
         """Post"""
         search_list = request.data['post_userdb_prefix_search']
         for item in search_list:
-            type = item['search_type']
-            term = item['search_term']
-            if type == 'mine':
+            search_type = item['search_type']
+            search_term = item['search_term']
+            if search_type == 'mine':
                 token = request.META.get('HTTP_AUTHORIZATION', " ").split(' ')[1]
                 data = {'token': token}
                 try:
@@ -428,13 +515,13 @@ class SearchPrefix(APIView):
                 except ValidationError as error:
                     print("validation error", error)
                 prefix_results = search_db(value='MINE', user=user)
-            if type == 'search' and term is not None:
-                prefix_results = search_db(value=term.upper())
-            if type == 'all':
+            if search_type == 'search' and search_term is not None:
+                prefix_results = search_db(value=search_term.upper())
+            if search_type == 'all':
                 prefix_results = search_db(value='all')
-            if term is None and type == 'search':
+            if search_term is None and search_type == 'search':
                 prefix_results = search_db(value='all')
-            if term == '' and type == 'search':
+            if search_term == '' and search_type == 'search':
                 prefix_results = search_db(value='all')
         # prefix_results = search_db(value='all')
         return Response(data=prefix_results, status=status.HTTP_200_OK)
