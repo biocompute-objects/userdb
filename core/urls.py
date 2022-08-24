@@ -33,6 +33,6 @@ urlpatterns = [
         'django_rest_passwordreset.urls',
         namespace='password_reset')
     ),
-    path('users/register_prefix/<str:username>/<str:prefix>', register_prefix, name='register'),
+    path('users/register_prefix/', register_prefix),
     path('users/prefixes/', SearchPrefix.as_view()),
 ]
