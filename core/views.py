@@ -323,7 +323,7 @@ def write_db(values):
     Call full_clean to make sure we have valid input.
     Source: https://docs.djangoproject.com/en/3.1/ref/models/instances/#validating-objects
     """
-    import pdb; pdb.set_trace()
+
     writable = Prefixes(
         username = values['username'],
         prefix = values['prefix'].upper(),
@@ -413,7 +413,7 @@ def register_prefix(request):
                 return_data.append(bco_api.json()[0])
                 any_failed = True
                 continue
-            import pdb; pdb.set_trace()
+
             if write_db({
                 'username': user,
                 'prefix': new_prefix['prefix'],
