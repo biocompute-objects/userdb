@@ -6,17 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0002_prefixes'),
+        ("core", "0002_prefixes"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='prefixes',
-            name='id',
+            model_name="prefixes",
+            name="id",
         ),
         migrations.AlterField(
-            model_name='prefixes',
-            name='prefix',
-            field=models.CharField(max_length=5, primary_key=True, serialize=False, unique=True),
+            model_name="prefixes",
+            name="prefix",
+            field=models.CharField(
+                max_length=5, primary_key=True, serialize=False, unique=True
+            ),
         ),
     ]

@@ -38,12 +38,21 @@ schema_view = get_schema_view(
 # ends here
 
 urlpatterns = [
-    re_path(r'^users/doc(?P<format>\.json|\.yaml)$',
-            schema_view.without_ui(cache_timeout=0), name='schema-json'), #Here
-    path('users/docs/', schema_view.with_ui('swagger', cache_timeout=0),
-         name='schema-swagger-ui'),  # Here
-    path('users/redoc/', schema_view.with_ui('redoc', cache_timeout=0),
-         name='schema-redoc'),  # Here
-    path('users/admin/', admin.site.urls),
-    path('', include('core.urls'))
+    re_path(
+        r"^users/doc(?P<format>\.json|\.yaml)$",
+        schema_view.without_ui(cache_timeout=0),
+        name="schema-json",
+    ),  # Here
+    path(
+        "users/docs/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),  # Here
+    path(
+        "users/redoc/",
+        schema_view.with_ui("redoc", cache_timeout=0),
+        name="schema-redoc",
+    ),  # Here
+    path("users/admin/", admin.site.urls),
+    path("", include("core.urls")),
 ]
