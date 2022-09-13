@@ -9,13 +9,17 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('core', '0003_auto_20220330_2122'),
+        ("core", "0003_auto_20220330_2122"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='prefixes',
-            name='username',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, to_field='username'),
+            model_name="prefixes",
+            name="username",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+                to_field="username",
+            ),
         ),
     ]

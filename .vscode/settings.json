@@ -1,4 +1,13 @@
 {
     "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "python.linting.pylintArgs": [
+        "--django-settings-module=portalusers.settings",
+        "--load-plugins=pylint_django",
+   ],
+    "django.snippets.exclude": [
+
+        "cms",
+        "wagtail"
+    ]
 }
