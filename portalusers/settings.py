@@ -30,7 +30,7 @@ ALLOWED_HOSTS = ["*"]
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-VERSION = "22.06"
+VERSION = "22.11"
 
 # Application definition
 

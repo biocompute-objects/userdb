@@ -2,10 +2,12 @@
 """Views
 """
 
+from email import header
 from itertools import chain
 import json
 from sys import prefix
 import uuid
+import requests
 from datetime import datetime
 import requests
 from drf_yasg import openapi
@@ -24,7 +26,6 @@ from .serializers import (
     ChangePasswordSerializer,
 )
 from django.core.exceptions import ObjectDoesNotExist
-
 
 class CreateUser(APIView):
     """Create a new user
@@ -340,6 +341,7 @@ def search_db(value, user=None):
     if value == "all":
         results = list(chain(Prefixes.objects.all().values(*return_values)))
     elif user is not None:
+
         results = list(
             chain(
                 Prefixes.objects.filter(username_id=user.username).values(
@@ -347,6 +349,7 @@ def search_db(value, user=None):
                 )
             )
         )
+
     else:
         results = list(
             chain(
@@ -379,7 +382,6 @@ def write_db(values):
         writable.save()
     except ValidationError as error:
         return error
-
 
 @swagger_auto_schema(method="post", tags=["Prefix Management"])
 @api_view(["POST"])
@@ -557,6 +559,7 @@ class SearchPrefix(APIView):
             if search_type == "mine":
                 token = request.META.get("HTTP_AUTHORIZATION", " ").split(" ")[1]
                 data = {"token": token}
+
                 try:
                     valid_data = VerifyJSONWebTokenSerializer().validate(data)
                     user = valid_data["user"]
