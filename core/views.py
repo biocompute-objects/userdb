@@ -271,7 +271,8 @@ def update_user(request):
     # properly formatted response
     return Response({
             'token': token,
-            'user' : UserSerializer(request.user).data
+            'user' : UserSerializer(request.user).data,
+            'message': 'Success! Profile updated.'
             })
 
 
